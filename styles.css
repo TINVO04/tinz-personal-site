@@ -1,0 +1,589 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Không cho cuộn */
+  cursor: none;
+}
+
+a, button, input, textarea {
+  cursor: none;
+}
+
+.page {
+  max-width: 1320px;      /* nới rộng container ra 1 chút */
+  margin: 0 auto;
+  padding: 32px 32px 64px; /* padding ngang lớn hơn nên cảm giác đầy hơn */
+}
+
+main {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;        /* Căn giữa theo trục dọc */
+  justify-content: center;    /* Căn giữa theo trục ngang */
+  gap: 40px;
+  padding: 0 40px;
+}
+
+@media (max-width: 768px) {
+  main {
+    grid-template-columns: 1fr; /* Mobile chuyển thành 1 cột */
+    padding: 20px;
+    overflow: auto; /* mobile vẫn cho scroll để tránh bể UI */
+  }
+}
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Không cho cuộn */
+}
+
+.page {
+  height: 100vh; /* Chiếm đúng 1 màn hình */
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+main {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;        /* Căn giữa theo trục dọc */
+  justify-content: center;    /* Căn giữa theo trục ngang */
+  gap: 40px;
+  padding: 0 40px;
+}
+
+@media (max-width: 768px) {
+  main {
+    grid-template-columns: 1fr; /* Mobile chuyển thành 1 cột */
+    padding: 20px;
+    overflow: auto; /* mobile vẫn cho scroll để tránh bể UI */
+  }
+}
+
+
+:root {
+  --bg: #020617;
+  --bg-soft: rgba(15, 23, 42, 0.85);
+  --accent: #22d3ee;
+  --accent-soft: rgba(56, 189, 248, 0.25);
+  --text-main: #f9fafb;
+  --text-sub: #9ca3af;
+  --radius-xl: 22px;
+  --transition-fast: 80ms ease-out;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  font-size: 16px;
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+
+  /* Ảnh nền bạn muốn dùng */
+  background-image: url("assets/images/bg.jpg"); /* đổi tên ảnh bạn */
+  background-size: cover;          /* full màn hình */
+  background-position: center;     /* focus giữa ảnh */
+  background-repeat: no-repeat;    /* không lặp */
+  background-attachment: fixed;    /* parallax nhẹ, mượt */
+}
+
+
+/* Aurora gradient động, rất nhẹ, không dùng JS */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -30%;
+  background:
+    radial-gradient(circle at 0% 0%,  rgba(56, 189, 248, 0.25), transparent 55%),
+    radial-gradient(circle at 100% 0%, rgba(129, 140, 248, 0.28), transparent 55%),
+    radial-gradient(circle at 10% 85%, rgba(45, 212, 191, 0.22), transparent 50%),
+    radial-gradient(circle at 90% 100%,rgba(59, 130, 246, 0.18), transparent 55%);
+  filter: blur(4px);
+  opacity: 0.85;
+  z-index: -3;
+  pointer-events: none;
+  animation: auroraShift 22s ease-in-out infinite alternate;
+}
+
+/* Vignette nhẹ cho cảm giác focus vào giữa */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.42); /* 42% tối → nhìn sang và rõ */
+  z-index: -1;
+  pointer-events: none;
+}
+
+
+/* Animation aurora */
+@keyframes auroraShift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-4%, 2%, 0) scale(1.05);
+  }
+  100% {
+    transform: translate3d(3%, -3%, 0) scale(1.03);
+  }
+}
+
+/* Canvas tuyết rơi */
+#snow-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999;        /* trên Vanta, dưới nội dung */
+  pointer-events: none;
+}
+
+/* Layout chung */
+.page {
+  max-width: 1320px;      /* nới rộng container ra 1 chút */
+  margin: 0 auto;
+  padding: 32px 32px 64px; /* padding ngang lớn hơn nên cảm giác đầy hơn */
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.logo {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-size: 14px;
+  text-transform: uppercase;
+  color: var(--text-sub);
+}
+
+.pill {
+  border-radius: 999px;
+  padding: 6px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-sub);
+  backdrop-filter: blur(12px);
+  background: rgba(15, 23, 42, 0.7);
+}
+
+.pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+}
+
+main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
+  gap: 28px; /* giảm gap giữa 2 cột một xíu */
+  align-items: flex-start;
+}
+
+@media (max-width: 768px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+
+/* Card base */
+.card {
+  position: relative;
+  background-color: rgba(6, 79, 79, 0.352);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(148, 184, 176, 0.25);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 24px 60px rgba(3, 7, 18, 0.85);
+  padding: 20px 22px;
+  overflow: hidden;
+
+  /* --- cho hiệu ứng xuất hiện + tilt --- */
+  opacity: 0;                                            /* ẩn lúc đầu */
+  transform: perspective(900px) translateY(18px) scale(0.98);
+  transform-style: preserve-3d;
+  transition:
+    transform 120ms ease-out,
+    border-color 120ms ease-out,
+    box-shadow 120ms ease-out,
+    background-color 120ms ease-out;
+  will-change: transform;
+}
+
+.card.card-enter {
+  animation: cardEnter 800ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+/* Trồi lên + hiện dần, nhưng vẫn giữ perspective */
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: perspective(900px) translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(900px) translateY(0) scale(1);
+  }
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background:
+    radial-gradient(
+      circle at var(--mouse-x, 50%) var(--mouse-y, 0%),
+      rgba(56, 189, 248, 0.22),
+      transparent 60%
+    );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease-out;
+}
+
+.card:hover {
+  transform: translateY(-2px);           /* nhích nhẹ cho cảm giác “bắt” */
+  border-color: rgba(148, 163, 184, 0.6);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+.card-title {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-sub);
+  margin-bottom: 12px;
+}
+
+.card.hero-card {
+    background-color: rgba(255, 255, 255, 0); /* hoàn toàn trong suốt */
+    backdrop-filter: none !important;        /* tắt mờ */
+}
+
+
+/* Left column */
+.hero-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 22px;           /* dãn hơn xíu */
+  align-items: center;
+  margin-bottom: 22px; /* cách card dưới rộng hơn */
+}
+
+.avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 999px;
+  border: 2px solid var(--accent-soft);
+  overflow: hidden;
+border: 1px solid rgba(255,255,255,0.1); /* viền mảnh nhẹ */
+  background: rgba(255,255,255,0.02);       /* tone tối trong suốt */
+  position: relative;
+}
+
+.avatar-inner {
+  position: absolute;
+  inset: 5px;
+  border-radius: inherit;
+  background-size: cover;
+  background-position: center;
+  /* ĐỔI URL AVATAR CỦA BẠN Ở DÒNG DƯỚI */
+  background-image: url("assets/images/avatar.jpg");
+  filter: saturate(1.1);
+}
+
+.hero-heading {
+  font-size: 30px;  /* lớn hơn */
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.hero-sub {
+  font-size: 15px;
+  color: var(--text-sub);
+  margin-bottom: 10px;
+  font-family: "Inter", sans-serif;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.decoding {
+  opacity: 0.85;
+}
+
+.hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  padding: 4px 10px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-sub);
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.about-text {
+  font-size: 15px;
+  color: var(--text-sub);
+  line-height: 1.6;
+  margin-top: 4px;
+}
+
+/* Social links */
+.social-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-top: 10px;
+}
+
+/* button social */
+.social-btn {
+  border-radius: 16px;
+  padding: 11px 13px;
+  border: 1px solid rgba(184, 148, 181, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;  /* icon + text về bên trái */
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-main);
+  background: rgba(5, 95, 95, 0.892);
+  text-decoration: none;
+  transition: transform var(--transition-fast),
+    border-color var(--transition-fast), background var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.social-btn:hover {
+  transform: translateY(-3px);
+    border-color: #564dff;
+    box-shadow: 0 0 12px #5f4dff;
+  background: rgba(42, 15, 34, 0.381);
+
+}
+
+/* layout bên trong button */
+.social-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.social-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.9);
+  font-size: 17px;
+}
+
+/* màu nhẹ theo từng platform (optional) */
+.social-logo.discord {
+  border-color: #5865f2;
+  color: #5865f2;
+}
+.social-logo.github {
+  border-color: #e5e7eb;
+  color: #e5e7eb;
+}
+.social-logo.steam {
+  border-color: #0ea5e9;
+  color: #0ea5e9;
+}
+
+.social-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.social-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.social-text span {
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+
+/* Right column */
+.stack-card {
+  margin-bottom: 18px;
+}
+
+.stack-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.chip {
+  border-radius: 999px;
+  padding: 6px 11px;
+  font-size: 12px;
+  background: rgba(5, 95, 95, 0.892);
+  border: 1px solid rgba(184, 148, 181, 0.4);
+  color: var(--text-sub);
+}
+
+.chip strong {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.gear-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1.3fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+@media (max-width: 640px) {
+  .gear-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gear-item {
+  border-radius: 16px;
+  padding: 10px 11px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background:  rgba(5, 95, 95, 0.892);
+  font-size: 13px;
+}
+
+.gear-label {
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  font-size: 10px;
+  color: var(--text-sub);
+  margin-bottom: 4px;
+}
+
+.gear-name {
+  font-size: 13px;
+  color: var(--text-main);
+}
+
+/* Now card */
+.now-list {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-sub);
+}
+
+.now-list li::marker {
+  color: var(--accent);
+}
+
+/* Footer */
+footer {
+  margin-top: 26px;
+  font-size: 11px;
+  color: var(--text-sub);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+a.mail-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a.mail-link:hover {
+  text-decoration: underline;
+}
+
+.cursor-fx {
+  position: fixed;
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(56, 189, 248, 0.7);
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: transform 80ms ease-out;
+  z-index: 9999;
+}
+
+/* Màn đen khi mới vào */
+#intro-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;  /* che hết mọi thứ phía dưới */
+  opacity: 1;
+  transition: opacity 300ms ease-out;
+}
+
+.intro-text {
+  color: #f9fafb;
+  font-size: 18px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Khi đã click: ẩn overlay */
+body.entered #intro-overlay {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* đảm bảo chuột custom nằm trên overlay */
+.cursor-fx {
+  z-index: 10001;        /* cao hơn intro-overlay */
+  pointer-events: none;
+}
+
