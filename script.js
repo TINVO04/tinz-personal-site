@@ -99,10 +99,10 @@ introOverlay.addEventListener("click", () => {
   let vol = 0;
   const fadeIn = setInterval(() => {
     vol += 0.02;
-    if (vol >= 1) {
-      vol = 1;            // ⬅ FIX: không cho vượt 1
-      clearInterval(fadeIn);
-    }
+    if (vol >= 0.5) {   // tối đa 60% volume
+    vol = 0.5;
+    clearInterval(fadeIn);
+}
     audio.volume = vol;
   }, 80); // mỗi 60ms tăng volume 1 lần
   /* --- END MUSIC FADE-IN --- */
