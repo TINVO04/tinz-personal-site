@@ -99,8 +99,8 @@ introOverlay.addEventListener("click", () => {
   let vol = 0;
   const fadeIn = setInterval(() => {
     vol += 0.02;
-    if (vol >= 0.3) {   // tối đa 60% volume
-    vol = 0.3;
+    if (vol >= 0.15) {   // tối đa 60% volume
+    vol = 0.15;
     clearInterval(fadeIn);
 }
     audio.volume = vol;
