@@ -1,12 +1,12 @@
 // Set năm ở footer
 document.getElementById("year").textContent = new Date().getFullYear();
 
-// Snowfall Minimalist
+// Digital Snowflakes - Cyberpunk Style
 const canvas = document.getElementById("snow-canvas");
 const ctx = canvas.getContext("2d");
 
 let width, height;
-let flakes = [];
+let snowflakes = [];
 
 function resizeCanvas() {
   width = canvas.width = window.innerWidth;
@@ -15,60 +15,136 @@ function resizeCanvas() {
 
 window.addEventListener("resize", () => {
   resizeCanvas();
-  initFlakes(); // tạo lại tuyết khi resize
+  initSnowflakes();
 });
 
-function initFlakes() {
-  const flakesCount = Math.floor(width / 10); // auto scale theo chiều rộng
-  flakes = [];
-  for (let i = 0; i < flakesCount; i++) {
-    flakes.push({
+function initSnowflakes() {
+  const snowflakeCount = Math.floor(width / 15); // Moderate density
+  snowflakes = [];
+  for (let i = 0; i < snowflakeCount; i++) {
+    snowflakes.push({
       x: Math.random() * width,
       y: Math.random() * height,
-      r: Math.random() * 2.2 + 0.8,       // bán kính
-      speedY: Math.random() * 0.7 + 0.3,  // tốc độ rơi
-      drift: Math.random() * 0.6 - 0.3,   // trôi ngang
-      opacity: Math.random() * 0.4 + 0.3, // độ mờ
+      size: Math.random() * 4 + 2,
+      speedY: Math.random() * 1.5 + 0.5,
+      drift: (Math.random() - 0.5) * 0.8,
+      opacity: Math.random() * 0.5 + 0.3,
+      shape: Math.floor(Math.random() * 3), // 0: hexagon, 1: diamond, 2: plus/circuit
+      color: Math.random() > 0.6 ? 'cyan' : (Math.random() > 0.5 ? 'purple' : 'magenta'),
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.03,
+      glowIntensity: Math.random() * 0.3 + 0.2
     });
   }
 }
 
-function drawFlakes() {
-  ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = "#ffffff";
+function drawHexagon(size) {
   ctx.beginPath();
-
-  flakes.forEach((flake) => {
-    ctx.globalAlpha = flake.opacity;
-    ctx.moveTo(flake.x, flake.y);
-    ctx.arc(flake.x, flake.y, flake.r, 0, Math.PI * 2);
-  });
-
-  ctx.fill();
-  ctx.globalAlpha = 1.0;
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI / 3) * i;
+    const x = size * Math.cos(angle);
+    const y = size * Math.sin(angle);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
 }
 
-const SNOW_SPEED = 4; // chỉnh số này để nhanh/chậm
+function drawDiamond(size) {
+  ctx.beginPath();
+  ctx.moveTo(0, -size);
+  ctx.lineTo(size, 0);
+  ctx.lineTo(0, size);
+  ctx.lineTo(-size, 0);
+  ctx.closePath();
+}
 
-function updateFlakes() {
-  flakes.forEach((flake) => {
-    flake.y += flake.speedY * SNOW_SPEED;
+function drawCircuitPlus(size) {
+  const lineLength = size * 0.8;
+  ctx.beginPath();
+  // Horizontal line
+  ctx.moveTo(-lineLength, 0);
+  ctx.lineTo(lineLength, 0);
+  // Vertical line
+  ctx.moveTo(0, -lineLength);
+  ctx.lineTo(0, lineLength);
+  // Small corners (circuit style)
+  ctx.moveTo(-lineLength, -lineLength * 0.3);
+  ctx.lineTo(-lineLength, -lineLength * 0.6);
+  ctx.lineTo(-lineLength * 0.7, -lineLength * 0.6);
+}
+
+function drawSnowflake(flake) {
+  ctx.save();
+  ctx.translate(flake.x, flake.y);
+  ctx.rotate(flake.rotation);
+  
+  // Color selection
+  let color;
+  if (flake.color === 'cyan') {
+    color = '0, 240, 255';
+  } else if (flake.color === 'purple') {
+    color = '123, 44, 191';
+  } else {
+    color = '255, 0, 110'; // magenta
+  }
+  
+  // Glow effect
+  ctx.shadowBlur = 10 * flake.glowIntensity;
+  ctx.shadowColor = `rgba(${color}, ${flake.opacity})`;
+  
+  ctx.globalAlpha = flake.opacity;
+  ctx.strokeStyle = `rgba(${color}, ${flake.opacity})`;
+  ctx.fillStyle = `rgba(${color}, ${flake.opacity * 0.2})`;
+  ctx.lineWidth = 1.5;
+  
+  // Draw shape
+  if (flake.shape === 0) {
+    drawHexagon(flake.size);
+    ctx.stroke();
+  } else if (flake.shape === 1) {
+    drawDiamond(flake.size);
+    ctx.fill();
+    ctx.stroke();
+  } else {
+    drawCircuitPlus(flake.size);
+    ctx.stroke();
+    // Add small dots at ends
+    ctx.beginPath();
+    ctx.arc(flake.size * 0.8, 0, 1.5, 0, Math.PI * 2);
+    ctx.arc(-flake.size * 0.8, 0, 1.5, 0, Math.PI * 2);
+    ctx.arc(0, flake.size * 0.8, 1.5, 0, Math.PI * 2);
+    ctx.arc(0, -flake.size * 0.8, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  ctx.restore();
+}
+
+function updateSnowflakes() {
+  snowflakes.forEach((flake) => {
+    flake.y += flake.speedY;
     flake.x += flake.drift;
+    flake.rotation += flake.rotationSpeed;
 
-    if (flake.y > height + 5) {
+    // Reset snowflake when it goes off screen
+    if (flake.y > height + 10) {
       flake.y = -10;
       flake.x = Math.random() * width;
     }
-
-    if (flake.x > width + 5) flake.x = -5;
-    if (flake.x < -5) flake.x = width + 5;
+    
+    // Horizontal wrapping
+    if (flake.x > width + 10) flake.x = -10;
+    if (flake.x < -10) flake.x = width + 10;
   });
 }
 
-
 function animate() {
-  drawFlakes();
-  updateFlakes();
+  ctx.clearRect(0, 0, width, height);
+  
+  updateSnowflakes();
+  snowflakes.forEach(flake => drawSnowflake(flake));
+  
   requestAnimationFrame(animate);
 }
 
@@ -87,41 +163,50 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!introOverlay) return;
 
 introOverlay.addEventListener("click", () => {
+  // Ẩn overlay NGAY LẬP TỨC để tránh lag
   document.body.classList.add("entered");
 
- /* --- PLAY MUSIC WITH FADE-IN --- */
-  const audio = document.getElementById("bg-music");
-  audio.volume = 0;
-  audio.loop = true;
+  // Animation xuất hiện các card với requestAnimationFrame để không block UI
+  requestAnimationFrame(() => {
+    const cards = document.querySelectorAll(".card");
+    cards.forEach((card, index) => {
+      const delay = 120 * index; // Tăng delay lên 120ms cho smooth hơn
+      setTimeout(() => {
+        card.classList.add("card-enter");
+      }, delay);
 
-  audio.play().catch(e => console.log("Autoplay blocked:", e));
-
-  let vol = 0;
-  const fadeIn = setInterval(() => {
-    vol += 0.02;
-    if (vol >= 0.15) {   // tối đa 60% volume
-    vol = 0.15;
-    clearInterval(fadeIn);
-}
-    audio.volume = vol;
-  }, 80); // mỗi 60ms tăng volume 1 lần
-  /* --- END MUSIC FADE-IN --- */
-
-  // animation xuất hiện các card
-  const cards = document.querySelectorAll(".card");
-  cards.forEach((card, index) => {
-    const delay = 80 * index;
-    card.style.animationDelay = `${delay}ms`;
-    card.classList.add("card-enter");
-
-    // Khi animation kết thúc thì bỏ class để transform JS hoạt động
-    card.addEventListener('animationend', () => {
-      card.classList.remove('card-enter');
-      // đảm bảo trạng thái cuối cùng là visible, đứng yên
-      card.style.opacity = '1';
-      card.style.transform = 'perspective(900px) translate3d(0,0,0)';
-    }, { once: true });
+      // Khi animation kết thúc thì bỏ class để transform JS hoạt động
+      card.addEventListener('animationend', () => {
+        card.classList.remove('card-enter');
+        card.style.opacity = '1';
+        card.style.transform = 'perspective(900px) translate3d(0,0,0)';
+      }, { once: true });
+    });
   });
+
+  // Play music trong background (không block UI)
+  setTimeout(() => {
+    const audio = document.getElementById("bg-music");
+    if (audio) {
+      audio.volume = 0;
+      audio.loop = true;
+      
+      audio.play().then(() => {
+        // Fade in volume sau khi play thành công
+        let vol = 0;
+        const fadeIn = setInterval(() => {
+          vol += 0.02;
+          if (vol >= 0.15) {
+            vol = 0.15;
+            clearInterval(fadeIn);
+          }
+          audio.volume = vol;
+        }, 80);
+      }).catch(e => {
+        console.log("Autoplay blocked:", e);
+      });
+    }
+  }, 100);
 });
 });
 
@@ -208,16 +293,31 @@ function decodeTextEffect(element, text, speed = 40, delay = 1200) {
   update();
 }
 
-// Kích hoạt
+// Kích hoạt decode effect
 document.addEventListener("DOMContentLoaded", () => {
   const el = document.getElementById("hero-sub");
   const text = el.textContent.trim();
   decodeTextEffect(el, text, 100, 2000);
+  
+  // Update timestamp in header
+  function updateTimestamp() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const timestampEl = document.getElementById('timestamp');
+    if (timestampEl) {
+      timestampEl.textContent = `${hours}:${minutes}:${seconds}`;
+    }
+  }
+  
+  updateTimestamp();
+  setInterval(updateTimestamp, 1000);
 });
 
 // Khởi tạo
 resizeCanvas();
-initFlakes();
+initSnowflakes();
 animate();
 
 
