@@ -8,6 +8,13 @@ const ctx = canvas.getContext("2d");
 let width, height;
 let snowflakes = [];
 
+// Audio Visualization - Beat Detection
+let audioContext = null;
+let analyser = null;
+let sourceNode = null;
+let frequencyData = null;
+const FFT_SIZE = 256;
+
 function resizeCanvas() {
   width = canvas.width = window.innerWidth;
   height = canvas.height = window.innerHeight;
@@ -139,9 +146,89 @@ function updateSnowflakes() {
   });
 }
 
+// Audio Visualization Functions
+function initAudioVisualizer(audioElement) {
+  try {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      console.log('AudioContext created');
+    }
+    if (!sourceNode) {
+      sourceNode = audioContext.createMediaElementSource(audioElement);
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = FFT_SIZE;
+      analyser.smoothingTimeConstant = 0.8;
+      
+      // Kết nối: source -> analyser -> destination
+      sourceNode.connect(analyser);
+      analyser.connect(audioContext.destination);
+      
+      frequencyData = new Uint8Array(analyser.frequencyBinCount);
+      console.log('Audio visualizer initialized successfully');
+    }
+  } catch (error) {
+    console.error('Error initializing audio visualizer:', error);
+    // Nếu lỗi, visualizer sẽ không hoạt động nhưng audio vẫn phát bình thường
+    // vì audio element vẫn độc lập
+  }
+}
+
+function updateAudioData() {
+  if (analyser && frequencyData) {
+    analyser.getByteFrequencyData(frequencyData);
+  }
+}
+
+function applyAudioToParticles() {
+  if (!frequencyData || frequencyData.length === 0) return;
+
+  // Lấy các giá trị tần số quan trọng
+  const bass = frequencyData[0] / 255;
+  
+  // Tính average bass energy cho beat detection
+  let sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += frequencyData[i];
+  }
+  const avgBass = sum / 10 / 255;
+
+  snowflakes.forEach((flake, index) => {
+    // Map mỗi particle đến một vùng tần số dựa trên vị trí x
+    const binIndex = Math.floor((flake.x / width) * frequencyData.length);
+    const energy = frequencyData[binIndex] / 255;
+
+    // Lưu giá trị gốc nếu chưa có
+    if (!flake.baseSize) flake.baseSize = flake.size;
+    if (!flake.baseSpeedY) flake.baseSpeedY = flake.speedY;
+    if (!flake.baseOpacity) flake.baseOpacity = flake.opacity;
+    if (!flake.baseGlowIntensity) flake.baseGlowIntensity = flake.glowIntensity;
+
+    // Áp dụng audio energy vào thuộc tính particles
+    flake.size = flake.baseSize + energy * 4;
+    flake.speedY = flake.baseSpeedY + energy * 1.5;
+    flake.opacity = Math.max(0.3, Math.min(1, flake.baseOpacity + energy * 0.5));
+    flake.glowIntensity = flake.baseGlowIntensity + energy * 0.6;
+    flake.rotationSpeed = (Math.random() - 0.5) * 0.03 * (1 + energy * 2);
+
+    // Beat effect - khi bass mạnh thì particles bounce
+    if (avgBass > 0.6) {
+      flake.size *= 1.3;
+      flake.glowIntensity *= 1.5;
+    }
+
+    // Extreme beat - particles phản ứng mạnh
+    if (avgBass > 0.8) {
+      flake.speedY *= 1.5;
+      flake.opacity = Math.min(1, flake.opacity * 1.2);
+    }
+  });
+}
+
 function animate() {
   ctx.clearRect(0, 0, width, height);
   
+  updateAudioData();
+  applyAudioToParticles();
   updateSnowflakes();
   snowflakes.forEach(flake => drawSnowflake(flake));
   
@@ -191,7 +278,20 @@ introOverlay.addEventListener("click", () => {
       audio.volume = 0;
       audio.loop = true;
       
+      // Khởi tạo audio visualizer TRƯỚC khi play
+      // (vì createMediaElementSource phải gọi trước play)
+      try {
+        initAudioVisualizer(audio);
+      } catch (e) {
+        console.log("Visualizer init failed, but audio will still play:", e);
+      }
+      
       audio.play().then(() => {
+        // Resume audio context nếu bị suspended
+        if (audioContext && audioContext.state === 'suspended') {
+          audioContext.resume();
+        }
+        
         // Fade in volume sau khi play thành công
         let vol = 0;
         const fadeIn = setInterval(() => {
