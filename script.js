@@ -296,8 +296,8 @@ introOverlay.addEventListener("click", () => {
         let vol = 0;
         const fadeIn = setInterval(() => {
           vol += 0.02;
-          if (vol >= 0.15) {
-            vol = 0.15;
+          if (vol >= 0.25) {
+            vol = 0.25;
             clearInterval(fadeIn);
           }
           audio.volume = vol;
